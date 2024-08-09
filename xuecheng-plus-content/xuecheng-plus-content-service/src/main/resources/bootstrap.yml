@@ -13,7 +13,10 @@ spring:
         group: xuecheng-plus-project
         file-extension: yaml
         refresh-enabled: true
-
+        shared-configs:
+          - data-id: feign-${spring.profiles.active}.yaml
+            group: xuecheng-plus-common
+            refresh: true
     #profiles默认为dev
     profiles:
       active: dev
@@ -25,3 +28,32 @@ spring:
 # 日志文件配置路径
 logging:
   config: classpath:log4j2-dev.xml
+xxl:
+  job:
+    admin:
+      addresses: http://192.168.101.65:8088/xxl-job-admin
+    executor:
+      appname: coursepublish-job
+      address:
+      ip:
+      port: 8999
+      logpath: /data/applogs/xxl-job/jobhandler
+      logretentiondays: 30
+    accessToken: default_token
+feign:
+  hystrix:
+    enabled: true
+  circuitbreaker:
+    enabled: true
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 30000  #熔断超时时间
+ribbon:
+  ConnectTimeout: 60000 #连接超时时间
+  ReadTimeout: 60000 #读超时时间
+  MaxAutoRetries: 0 #重试次数
+  MaxAutoRetriesNextServer: 1 #切换实例的重试次数

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 public interface CourseBaseInfoService {
     //课程分页查询
-    public PageResult<CourseBase> queryCourseBaseList(PageParams pageParams,QueryCourseParamsDto queryCourseParamsDto);
+    public PageResult<CourseBase> queryCourseBaseList(Long companyId,PageParams pageParams,QueryCourseParamsDto queryCourseParamsDto);
     public CourseBaseInfoDto createCourseBase(Long companyId,AddCourseDto dto);
     public CourseBaseInfoDto getCourseBaseInfo(long courseId);
     public CourseBaseInfoDto updateCourseBase(Long companyId, EditCourseDto dto);
