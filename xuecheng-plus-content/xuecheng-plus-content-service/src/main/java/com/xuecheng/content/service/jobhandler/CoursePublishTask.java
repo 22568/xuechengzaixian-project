@@ -1,5 +1,6 @@
 package com.xuecheng.content.service.jobhandler;
 
+import com.alibaba.fastjson.JSON;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.content.feignclient.SearchServiceClient;
 import com.xuecheng.content.mapper.CoursePublishMapper;
@@ -14,7 +15,9 @@ import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +31,9 @@ public class CoursePublishTask extends MessageProcessAbstract {
     CoursePublishMapper coursePublishMapper;
     @Autowired
     SearchServiceClient searchServiceClient;
+    @Autowired
+    RedisTemplate redisTemplate;
+
     //任务调度入口
     @XxlJob("CoursePublishJobHandler")
     public void coursePublishJobHandler() throws Exception {
@@ -79,14 +85,37 @@ public class CoursePublishTask extends MessageProcessAbstract {
     //将课程信息缓存至redis
     public void saveCourseCache(MqMessage mqMessage,long courseId){
         log.debug("将课程信息缓存至redis,课程id:{}",courseId);
-        try {
-            TimeUnit.SECONDS.sleep(2);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        //消息id
+        Long id = mqMessage.getId();
+        //消息处理的service
+        MqMessageService mqMessageService = this.getMqMessageService();
+        //消息幂等性处理
+        int stageThree = mqMessageService.getStageThree(id);
+        if(stageThree > 0){
+            log.debug("课程索引已处理直接返回，课程id:{}",courseId);
+            return ;
+        }
+
+        Boolean result = saveCourseRedis(courseId);
+        if(result){
+            //保存第一阶段状态
+            mqMessageService.completedStageThree(id);
         }
 
 
+
     }
+
+    private Boolean saveCourseRedis(long courseId) {
+        CoursePublish coursePublish = coursePublishService.getCoursePublish(courseId);
+        redisTemplate.opsForValue().set("course:" + courseId, JSON.toJSONString(coursePublish),1,TimeUnit.DAYS);
+        String jsonString = (String) redisTemplate.opsForValue().get("course:" + courseId);
+        if(jsonString!=null){
+            return true;
+        }
+        return false;
+    }
+
     //保存课程索引信息
     public void saveCourseIndex(MqMessage mqMessage,long courseId){
         log.debug("保存课程索引信息,课程id:{}",courseId);

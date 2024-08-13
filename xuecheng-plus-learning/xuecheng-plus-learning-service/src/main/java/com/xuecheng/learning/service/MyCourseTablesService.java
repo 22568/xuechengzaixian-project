@@ -14,4 +14,6 @@ public interface MyCourseTablesService {
     public boolean saveChooseCourseStauts(String choosecourseId);
 
     public PageResult<XcCourseTables> mycourestabls(MyCourseTableParams params);
+
+    public XcChooseCourseDto renewCourse(String userId, Long courseId);
 }

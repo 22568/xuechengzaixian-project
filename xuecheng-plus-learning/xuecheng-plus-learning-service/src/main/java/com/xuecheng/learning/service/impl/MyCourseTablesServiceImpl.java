@@ -221,4 +221,44 @@ public class MyCourseTablesServiceImpl implements MyCourseTablesService {
         PageResult<XcCourseTables> courseTablesResult = new PageResult<>(records, total, pageNo, pageSize);
         return courseTablesResult;
     }
+
+    @Override
+    public XcChooseCourseDto renewCourse(String userId, Long courseId) {
+        XcCourseTablesDto xcCourseTable = getLearningStatus(userId, courseId);
+        Long choosecourseId = xcCourseTable.getChooseCourseId();
+        String learnStatus = xcCourseTable.learnStatus;
+        if(learnStatus.equals("701001")){
+            XueChengPlusException.cast("正常学习");
+        }else if(learnStatus.equals("702002")){
+            XueChengPlusException.cast("没有选课或选课后没有支付");
+        }
+        XcChooseCourse xcChooseCourse = xcChooseCourseMapper.selectById(choosecourseId);
+        CoursePublish coursepublish = contentServiceClient.getCoursepublish(Long.valueOf(userId));
+        String charge = coursepublish.getCharge();
+        XcChooseCourseDto xcChooseCourseDto = new XcChooseCourseDto();
+        if("201000".equals(charge)){//课程免费
+            xcChooseCourse.setStatus("701001");
+            xcChooseCourse.setValidtimeStart(LocalDateTime.now());
+            xcChooseCourse.setValidtimeEnd(LocalDateTime.now().minusDays(365));
+            xcCourseTable.setLearnStatus("702001");
+            int i = xcChooseCourseMapper.updateById(xcChooseCourse);
+            if (i<=0){
+                log.debug("更新选课状态失败");
+                XueChengPlusException.cast("更新选课状态失败");
+            }
+            int i1 = xcCourseTablesMapper.updateById(xcCourseTable);
+            if(i1<=0){
+                log.debug("更新课程表状态失败");
+                XueChengPlusException.cast("更新课程表状态失败");
+            }
+            BeanUtils.copyProperties(xcChooseCourse,xcChooseCourseDto);
+        }else{
+            XcChooseCourse chooseCourse = addChargeCourse(userId, coursepublish);
+            BeanUtils.copyProperties(chooseCourse,xcChooseCourseDto);
+        }
+        //获取学习资格
+        XcCourseTablesDto xcCourseTablesDto = getLearningStatus(userId, courseId);
+        xcChooseCourseDto.setLearnStatus(xcCourseTablesDto.getLearnStatus());
+        return xcChooseCourseDto;
+    }
 }

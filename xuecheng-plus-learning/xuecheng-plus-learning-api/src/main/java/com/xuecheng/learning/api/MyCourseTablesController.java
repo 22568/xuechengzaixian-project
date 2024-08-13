@@ -71,8 +71,21 @@ public class MyCourseTablesController {
         String userId = user.getId();
 //设置当前的登录用户
         params.setUserId(userId);
-
         return myCourseTablesService.mycourestabls(params);
+    }
+
+    @ApiOperation("课程续期")
+    @PostMapping("/renewCourse/{courseId}")
+    public XcChooseCourseDto renewCourse(@PathVariable("courseId") Long courseId) {
+
+        //登录用户
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        if(user == null){
+            XueChengPlusException.cast("请登录后继续选课");
+        }
+        String userId = user.getId();
+
+        return  myCourseTablesService.renewCourse(userId, courseId);
     }
 
 }
