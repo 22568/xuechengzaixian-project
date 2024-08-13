@@ -1,9 +1,11 @@
 package com.xuecheng.content.api;
 
 
+import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.dto.TeachplanDto;
+import com.xuecheng.content.model.po.Teachplan;
 import com.xuecheng.content.service.TeachplanService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -18,6 +20,8 @@ import java.util.List;
 public class TeachplanController {
     @Autowired
     TeachplanService teachplanService;
+    @Autowired
+    TeachplanMapper teachplanMapper;
     @ApiOperation("查询课程计划树形结构")
     @ApiImplicitParam(value = "courseId",name = "课程Id",required = true,dataType = "Long",paramType = "path")
     @GetMapping("/teachplan/{courseId}/tree-nodes")
@@ -54,6 +58,12 @@ public class TeachplanController {
     @DeleteMapping("/teachplan/association/media/{teachPlanId}/{mediaId}")
     public void deleteMedia(@PathVariable Long teachPlanId,Long mediaId){
         teachplanService.deleteMedia(teachPlanId,mediaId);
+    }
+    @ApiOperation("查询课程计划")
+    @GetMapping("/r/teachplan/{teachplanId}")
+    public Teachplan getTeachPlanById(@PathVariable Long teachplanId) {
+        Teachplan teachplanDto =teachplanMapper.selectById(teachplanId);
+        return teachplanDto;
     }
 }
 

@@ -3,6 +3,7 @@ package com.xuecheng.content.service;
 import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.dto.TeachplanDto;
+import com.xuecheng.content.model.po.Teachplan;
 import com.xuecheng.content.model.po.TeachplanMedia;
 import org.springframework.stereotype.Service;
 
@@ -17,5 +18,7 @@ public interface TeachplanService {
     public void moveDownTeachplan(Long id);
     public TeachplanMedia associationMedia(BindTeachplanMediaDto bindTeachplanMediaDto);
 
-    void deleteMedia(Long teachPlanId, Long mediaId);
+    public void deleteMedia(Long teachPlanId, Long mediaId);
+
+
 }
